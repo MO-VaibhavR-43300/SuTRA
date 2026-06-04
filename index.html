@@ -1,0 +1,595 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>SuTRA — Structurally-Unified Tokenization with Root Awareness</title>
+  <meta name="description" content="SuTRA: morphology-aware tokenization for Indic languages that preserves akshara integrity and reduces morphological shattering." />
+  <meta property="og:title" content="SuTRA — Structurally-Unified Tokenization with Root Awareness" />
+  <meta property="og:description" content="Morphology-aware subword tokenization for Hindi, Marathi, and Gujarati with improved alignment, semantic recoverability, and machine translation." />
+  <meta property="og:type" content="website" />
+  <link href="https://fonts.googleapis.com/css2?family=Google+Sans&display=swap" rel="stylesheet" />
+  <link href="https://cdn.jsdelivr.net/gh/jpswalsh/academicons@1/css/academicons.min.css" rel="stylesheet">
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+  <style>
+    :root {
+      --accent: #0d9488;
+      --accent-dark: #0f766e;
+      --text: #1a1a1a;
+      --muted: #555;
+      --bg-soft: #f8fafc;
+      --border: #e2e8f0;
+    }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
+      margin: 0;
+      padding: 2rem 1.25rem;
+      background: #fff;
+      color: var(--text);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      text-align: center;
+      min-height: 100vh;
+      box-sizing: border-box;
+    }
+    h1 {
+      font-family: 'Google Sans', 'Product Sans', 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+      font-weight: 900;
+      font-size: clamp(1.75rem, 4vw, 2.75rem);
+      max-width: 1000px;
+      margin: 0 0 0.35rem;
+      line-height: 1.15;
+      letter-spacing: -0.03em;
+    }
+    .subtitle {
+      font-size: 1.15rem;
+      color: var(--muted);
+      max-width: 820px;
+      margin: 0 auto 1rem;
+      line-height: 1.45;
+    }
+    h2 {
+      font-size: 1.65rem;
+      margin-top: 2.5rem;
+      margin-bottom: 1rem;
+      text-align: center;
+      width: 100%;
+    }
+    h3 {
+      font-size: 1.2rem;
+      margin: 1.5rem 0 0.75rem;
+      text-align: left;
+      max-width: 960px;
+      width: 100%;
+    }
+    p, ul {
+      max-width: 900px;
+      margin: 0 auto 1.25rem;
+      font-size: 1.05rem;
+      line-height: 1.65;
+      text-align: left;
+    }
+    ul { padding-left: 1.5rem; }
+    .tagline {
+      color: var(--accent-dark);
+      font-weight: 700;
+      margin-bottom: 1rem;
+      font-size: 1.1rem;
+    }
+    .authors {
+      margin-bottom: 0.5rem;
+      font-size: 1.05rem;
+      line-height: 1.55;
+      max-width: 960px;
+    }
+    .authors a {
+      color: #1a73e8;
+      text-decoration: none;
+    }
+    .authors a:hover { text-decoration: underline; }
+    .authors sup { font-size: 0.7em; }
+    .institutions, .emails {
+      font-style: italic;
+      margin-bottom: 0.5rem;
+      font-size: 0.98rem;
+      color: var(--muted);
+      max-width: 900px;
+      line-height: 1.5;
+    }
+    .emails { margin-bottom: 1.75rem; font-style: normal; font-size: 0.92rem; word-break: break-word; }
+    .buttons {
+      display: flex;
+      gap: 0.75rem;
+      justify-content: center;
+      flex-wrap: wrap;
+      margin-bottom: 2rem;
+    }
+    .btn {
+      background-color: #333;
+      color: white;
+      padding: 0.55rem 1.25rem;
+      border-radius: 9999px;
+      font-weight: 600;
+      font-size: 0.95rem;
+      text-decoration: none;
+      display: inline-flex;
+      align-items: center;
+      gap: 0.45rem;
+      transition: background-color 0.2s ease;
+    }
+    .btn:hover { background-color: #111; }
+    .btn-primary { background-color: var(--accent); }
+    .btn-primary:hover { background-color: var(--accent-dark); }
+    .btn svg { height: 1.15em; width: 1.15em; fill: white; }
+    .btn.disabled {
+      opacity: 0.55;
+      pointer-events: none;
+      cursor: default;
+    }
+
+    section {
+      margin-top: 2rem;
+      width: 100%;
+      max-width: 960px;
+    }
+
+    .metric-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 1rem;
+      margin: 1.5rem 0 2rem;
+      text-align: center;
+    }
+    .metric-card {
+      background: var(--bg-soft);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 1.1rem 1rem;
+    }
+    .metric-card .value {
+      font-size: 1.75rem;
+      font-weight: 800;
+      color: var(--accent-dark);
+      line-height: 1.2;
+    }
+    .metric-card .label {
+      font-size: 0.88rem;
+      color: var(--muted);
+      margin-top: 0.35rem;
+      line-height: 1.35;
+    }
+
+    .table-wrap {
+      overflow-x: auto;
+      margin: 1rem 0 1.5rem;
+      border-radius: 10px;
+      border: 1px solid var(--border);
+      background: #fff;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.92rem;
+      text-align: center;
+      min-width: 520px;
+    }
+    th, td {
+      padding: 0.55rem 0.65rem;
+      border-bottom: 1px solid var(--border);
+    }
+    th {
+      background: var(--bg-soft);
+      font-weight: 700;
+    }
+    tr:last-child td { border-bottom: none; }
+    .best { font-weight: 700; color: var(--accent-dark); }
+    .ours-row { background: #f0fdfa; }
+    caption {
+      caption-side: top;
+      text-align: left;
+      padding: 0.75rem 0.65rem 0.5rem;
+      font-size: 0.95rem;
+      color: var(--muted);
+      line-height: 1.4;
+    }
+
+    .figures .row {
+      display: flex;
+      justify-content: center;
+      align-items: flex-start;
+      gap: 1.5rem;
+      flex-wrap: wrap;
+      margin-bottom: 1.5rem;
+    }
+    figure {
+      margin: 0;
+      max-width: 100%;
+    }
+    figure img {
+      max-width: 100%;
+      height: auto;
+      border-radius: 10px;
+      box-shadow: 0 2px 12px rgba(0,0,0,0.08);
+      border: 1px solid var(--border);
+    }
+    figure.wide img { max-width: 920px; }
+    figcaption {
+      margin-top: 0.65rem;
+      font-size: 0.92rem;
+      color: var(--muted);
+      text-align: left;
+      line-height: 1.45;
+      max-width: 920px;
+    }
+    .figure-placeholder {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 180px;
+      padding: 1.5rem;
+      background: var(--bg-soft);
+      border: 2px dashed var(--border);
+      border-radius: 10px;
+      color: var(--muted);
+      font-size: 0.95rem;
+      text-align: center;
+      line-height: 1.5;
+    }
+    .figure-placeholder code {
+      background: #e2e8f0;
+      padding: 0.1rem 0.35rem;
+      border-radius: 4px;
+      font-size: 0.88em;
+    }
+
+    pre {
+      background: #f5f5f5;
+      padding: 1rem;
+      border-radius: 8px;
+      overflow-x: auto;
+      font-size: 0.85rem;
+      line-height: 1.45;
+      margin: 0;
+    }
+    #bibtex {
+      max-width: 900px;
+      margin: 2rem auto;
+      background: #f5f5f5;
+      padding: 1rem;
+      border-radius: 8px;
+      text-align: left;
+      width: 100%;
+      box-sizing: border-box;
+    }
+    footer {
+      text-align: center;
+      font-size: 0.88rem;
+      color: #777;
+      margin: 3rem 0 1rem;
+      max-width: 700px;
+      line-height: 1.5;
+    }
+    footer a { color: #1a73e8; }
+  </style>
+</head>
+<body>
+
+  <h1>SuTRA: Structurally-Unified Tokenization<br>with Root Awareness</h1>
+  <p class="subtitle">Morphology-aware subword learning for Hindi, Marathi, and Gujarati that preserves akshara integrity and reduces <em>Morphological Shattering</em>.</p>
+
+  <div class="tagline">Large Language Models · Tokenization · Indic Languages</div>
+
+  <div class="authors">
+    <a href="https://www.linkedin.com/in/vaibhav-rathore-ab696b188" target="_blank" rel="noopener">Vaibhav Rathore</a><sup>1,2</sup>,
+    <a href="https://www.linkedin.com/in/siddhant-gole-812000/" target="_blank" rel="noopener">Siddhant Gole</a><sup>1,2</sup>,
+    Dadhichi Telwadkar<sup>1</sup>,
+    <a href="https://www.linkedin.com/in/rooshil-bhatia/" target="_blank" rel="noopener">Rooshil Bhatia</a><sup>1</sup>,
+    <a href="https://www.linkedin.com/in/maulik-ruparel/" target="_blank" rel="noopener">Maulik Ruparel</a><sup>1</sup>,
+    <a href="https://www.linkedin.com/in/siddharth-sureka/" target="_blank" rel="noopener">Siddharth Surekha</a><sup>1</sup>,
+    <a href="https://www.linkedin.com/in/neha-bhargava-5898b38/" target="_blank" rel="noopener">Neha Bhargava</a><sup>1</sup>
+  </div>
+
+  <div class="institutions">
+    <sup>1</sup> Motilal Oswal Financial Services Ltd., India &nbsp;·&nbsp;
+    <sup>2</sup> Indian Institute of Technology (IIT) Bombay, India
+  </div>
+  <div class="emails">
+    {vaibhav.rathor.in, siddhant8057, telwadkardadhichi, rooshil.bhatia, maulikruparel4, siddharthsureka, neha.iitb}@gmail.com
+  </div>
+
+  <div class="buttons">
+    <a href="#" id="paper-link" class="btn btn-primary" title="Update href when the paper is public">
+      <i class="ai ai-arxiv"></i> Paper
+    </a>
+    <a href="#" id="code-link" class="btn" title="Update href to the code repository">
+      <i class="fab fa-github"></i> Code
+    </a>
+    <a href="poster.html" class="btn">
+      <i class="fas fa-image"></i> Poster
+    </a>
+    <a href="images/tokenizer_segmentation_predictions.csv" class="btn" download>
+      <i class="fas fa-database"></i> Segmentation Data
+    </a>
+  </div>
+
+  <div class="metric-grid">
+    <div class="metric-card">
+      <div class="value">+14.7%</div>
+      <div class="label">Peak Boundary F1 over BPE (morphological alignment)</div>
+    </div>
+    <div class="metric-card">
+      <div class="value">+34%</div>
+      <div class="label">Relative Linear R² gain in Hindi (semantic recoverability)</div>
+    </div>
+    <div class="metric-card">
+      <div class="value">+8.08</div>
+      <div class="label">Average chrF2 improvement in machine translation</div>
+    </div>
+    <div class="metric-card">
+      <div class="value">560k</div>
+      <div class="label">LLM-verified morphological splits (Hi, Mr, Gu)</div>
+    </div>
+  </div>
+
+  <section id="abstract">
+    <h2>Abstract</h2>
+    <p>
+      Existing subword tokenizers optimize statistical compression but ignore morphological structure,
+      particularly the relationship between roots and affixes. This is harmful for morphologically rich
+      Indic languages, where basic units are complex orthographic syllables (<em>aksharas</em>) rather than letters.
+      Frequency-based methods over-fragment words, arbitrarily splitting roots and affixes—a phenomenon we term
+      <strong>Morphological Shattering</strong>.
+    </p>
+    <p>
+      We propose <strong>SuTRA</strong> (Structurally-Unified Tokenization with Root Awareness), a morphology-aware
+      algorithm that preserves akshara indivisibility and penalizes merges crossing morphological boundaries.
+      We also release a new morphological segmentation dataset for Hindi, Marathi, and Gujarati.
+      SuTRA reduces shattering, achieving peak gains of <strong>+14.7%</strong> in morphological alignment (Boundary F1)
+      and <strong>+34%</strong> in semantic recoverability (Hindi) over BPE. These structural gains yield an average
+      improvement of <strong>+8.08 chrF2</strong> in machine translation.
+    </p>
+  </section>
+
+  <section id="contributions">
+    <h2>Key Contributions</h2>
+    <ul>
+      <li><strong>SuTRA</strong> — a structure-guided extension of BPE combining script-aware akshara grouping, morphology-aligned merge scoring, and a root-preserving boundary constraint with rigidity annealing.</li>
+      <li><strong>Indic Morphological Gold-Standard Dataset</strong> — ~560k LLM-verified morphological splits for Hindi, Marathi, and Gujarati with root restoration.</li>
+      <li><strong>Comprehensive evaluation</strong> — morphological alignment, semantic recoverability, machine translation, and robustness under orthographic perturbations.</li>
+    </ul>
+  </section>
+
+  <section id="figures" class="figures">
+    <h2>Morphological Shattering</h2>
+    <figure class="wide">
+      <img src="images/teaser.png" alt="Morphological Shattering vs. Root Preservation (Figure 1)"
+           onerror="this.style.display='none'; document.getElementById('ph-fig1').style.display='flex';">
+      <div id="ph-fig1" class="figure-placeholder" style="display:none">
+        Add paper Figure 1 as <code>images/figure1_shattering.png</code>
+      </div>
+      <figcaption>
+        <strong>Figure 1:</strong> Morphological Shattering vs. root preservation. For Hindi <em>asādhāran</em>,
+        standard BPE fuses the negation prefix into the root, while SuTRA cleanly separates prefix and root.
+      </figcaption>
+    </figure>
+  </section>
+
+  <section id="method" class="figures">
+    <h2>Method</h2>
+    <p>
+      SuTRA operates in two phases. <strong>Phase 1 (Pre-tokenization)</strong> applies orthographic rules Φ to group
+      characters into akshara-like units and marks forbidden boundaries using a gold lexicon or a seq2seq model for OOV words.
+      <strong>Phase 2 (Morphology-aware merging)</strong> runs BPE-style training with score
+      <em>S(a, b) = f(a, b) · Ψ(a, b)<sup>γ<sub>t</sub></sup></em>, where Ψ downweights merges that cross morpheme boundaries
+      and γ<sub>t</sub> is annealed from strict to permissive over training.
+    </p>
+    <figure class="wide">
+      <img src="images/sutra_architecture.png" alt="Overview of SuTRA pipeline (Figure 2)"
+           onerror="this.style.display='none'; document.getElementById('ph-fig2').style.display='flex';">
+      <div id="ph-fig2" class="figure-placeholder" style="display:none">
+        Add paper Figure 2 as <code>images/figure2_overview.png</code>
+      </div>
+      <figcaption>
+        <strong>Figure 2:</strong> SuTRA pipeline — akshara pre-tokenization, forbidden-boundary identification, and rigidity-annealed merging.
+      </figcaption>
+    </figure>
+    <figure class="wide">
+      <img src="images/Comparison Table.png" alt="Qualitative tokenizer comparison (Figure 3)"
+           onerror="this.style.display='none'; document.getElementById('ph-fig3').style.display='flex';">
+      <div id="ph-fig3" class="figure-placeholder" style="display:none">
+        Add paper Figure 3 as <code>images/figure3_qualitative.png</code>
+      </div>
+      <figcaption>
+        <strong>Figure 3:</strong> Qualitative comparison across tokenizers; SuTRA aligns with gold morphological boundaries.
+      </figcaption>
+    </figure>
+  </section>
+
+  <section id="dataset">
+    <h2>Morphological Dataset</h2>
+    <p>
+      We construct a gold-standard morphological split dataset for Hindi, Marathi, and Gujarati via a three-stage pipeline:
+      IndicCorp vocabulary extraction, adapted SampoNLP decomposition, and Gemini-assisted verification with explicit root restoration.
+    </p>
+    <div class="table-wrap">
+      <table>
+        <caption>Table 1 — Comparison with existing morphological resources.</caption>
+        <thead>
+          <tr>
+            <th>Dataset</th>
+            <th>Langs</th>
+            <th>Size</th>
+            <th>Verification</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr><td>UniMorph 4.0</td><td>Multi (partial Indic)</td><td>~10M</td><td>Algorithmic</td></tr>
+          <tr><td>MorphyNet</td><td>15 (no Indic)</td><td>10.6M</td><td>Manual (expert)</td></tr>
+          <tr><td>GujMorph</td><td>Gujarati</td><td>~80k</td><td>None</td></tr>
+          <tr class="ours-row"><td><strong>Ours (Gold)</strong></td><td><strong>Hi, Mr, Gu</strong></td><td><strong>560k</strong></td><td><strong>LLM-verified</strong></td></tr>
+        </tbody>
+      </table>
+    </div>
+    <div class="table-wrap">
+      <table>
+        <caption>Table 2 — Gold standard statistics by language.</caption>
+        <thead>
+          <tr><th>Language</th><th>Source</th><th>Unique words</th></tr>
+        </thead>
+        <tbody>
+          <tr><td>Hindi</td><td>IndicCorp</td><td>≈ 160,000</td></tr>
+          <tr><td>Marathi</td><td>IndicCorp</td><td>≈ 200,000</td></tr>
+          <tr><td>Gujarati</td><td>IndicCorp</td><td>≈ 200,000</td></tr>
+          <tr class="ours-row"><td><strong>Total</strong></td><td></td><td><strong>≈ 560,000</strong></td></tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <section id="results">
+    <h2>Results</h2>
+
+    <h3>Morphological alignment</h3>
+    <div class="table-wrap">
+      <table>
+        <caption>Table 3 — Boundary F1 (↑) and fertility ratio (↓) on gold morpheme segmentations.</caption>
+        <thead>
+          <tr>
+            <th rowspan="2">Tokenizer</th>
+            <th colspan="2">Hindi</th>
+            <th colspan="2">Marathi</th>
+            <th colspan="2">Gujarati</th>
+          </tr>
+          <tr>
+            <th>F1</th><th>Fert.</th>
+            <th>F1</th><th>Fert.</th>
+            <th>F1</th><th>Fert.</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr><td>BPE (ACL'16)</td><td>0.482</td><td>1.285</td><td>0.470</td><td>1.225</td><td>0.591</td><td>1.126</td></tr>
+          <tr><td>WordPiece</td><td>0.411</td><td>1.214</td><td>0.527</td><td>1.300</td><td>0.596</td><td>1.173</td></tr>
+          <tr><td>SentencePiece</td><td>0.438</td><td>1.315</td><td>0.083</td><td>1.183</td><td>0.591</td><td>1.156</td></tr>
+          <tr><td>Unigram</td><td>0.439</td><td>1.310</td><td>0.507</td><td>1.256</td><td>0.669</td><td>1.137</td></tr>
+          <tr><td>SuperBPE</td><td>0.089</td><td>2.517</td><td>0.084</td><td>3.084</td><td>0.096</td><td>3.113</td></tr>
+          <tr><td>MorphTok</td><td>0.190</td><td>2.601</td><td>0.216</td><td>3.482</td><td>0.247</td><td>3.494</td></tr>
+          <tr class="ours-row"><td><strong>SuTRA (Ours)</strong></td><td class="best">0.586</td><td>1.412</td><td class="best">0.617</td><td>1.755</td><td>0.584</td><td>1.454</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h3>Semantic recoverability (R²)</h3>
+    <div class="table-wrap">
+      <table>
+        <caption>Table 4 — Whole-word embedding recoverability from subword embeddings (Word2Vec + probes).</caption>
+        <thead>
+          <tr>
+            <th rowspan="2">Language</th>
+            <th colspan="2">Linear (Layer 0)</th>
+            <th colspan="2">MLP (Layer 2+)</th>
+          </tr>
+          <tr>
+            <th>SuTRA</th><th>BPE</th>
+            <th>SuTRA</th><th>BPE</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr><td>Hindi</td><td class="best">0.4464</td><td>0.3329</td><td class="best">0.5048</td><td>0.3358</td></tr>
+          <tr><td>Marathi</td><td class="best">0.4634</td><td>0.4619</td><td class="best">0.5331</td><td>0.4649</td></tr>
+          <tr><td>Gujarati</td><td>0.4624</td><td class="best">0.4640</td><td class="best">0.5055</td><td>0.4510</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h3>Machine translation</h3>
+    <div class="table-wrap">
+      <table>
+        <caption>Table 5 — Hindi ↔ Marathi translation (3-layer Transformer, 32k vocab, BhasaAnuvaad).</caption>
+        <thead>
+          <tr>
+            <th rowspan="2">Tokenizer</th>
+            <th colspan="2">Hindi → Marathi</th>
+            <th colspan="2">Marathi → Hindi</th>
+          </tr>
+          <tr>
+            <th>chrF2</th><th>COMET</th>
+            <th>chrF2</th><th>COMET</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr><td>BPE</td><td>24.62</td><td>0.5054</td><td>36.55</td><td>0.6253</td></tr>
+          <tr><td>WordPiece</td><td>30.37</td><td>0.6093</td><td>27.18</td><td>0.5223</td></tr>
+          <tr><td>SentencePiece</td><td>25.01</td><td>0.4964</td><td>28.10</td><td>0.5147</td></tr>
+          <tr><td>Unigram</td><td>26.55</td><td>0.5157</td><td>29.19</td><td>0.5349</td></tr>
+          <tr><td>SuperBPE</td><td>15.84</td><td>0.3047</td><td>16.27</td><td>0.3422</td></tr>
+          <tr><td>MorphTok</td><td>26.75</td><td>0.5750</td><td>29.42</td><td>0.6007</td></tr>
+          <tr class="ours-row"><td><strong>SuTRA (Ours)</strong></td><td>29.96</td><td>0.5752</td><td class="best">38.84</td><td class="best">0.6554</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h3>Morphological robustness</h3>
+    <div class="table-wrap">
+      <table>
+        <caption>Table 6 — Robustness under synthetic perturbations (10k words per language): Jaccard overlap (↑), root-affected distance (↓).</caption>
+        <thead>
+          <tr>
+            <th rowspan="2">Tokenizer</th>
+            <th colspan="2">Hindi</th>
+            <th colspan="2">Marathi</th>
+            <th colspan="2">Gujarati</th>
+          </tr>
+          <tr>
+            <th>Jac.</th><th>R.Aff.</th>
+            <th>Jac.</th><th>R.Aff.</th>
+            <th>Jac.</th><th>R.Aff.</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr><td>BPE</td><td>0.386</td><td>0.228</td><td>0.305</td><td>0.324</td><td>0.319</td><td>0.296</td></tr>
+          <tr><td>Unigram</td><td>0.363</td><td>0.232</td><td>0.294</td><td>0.340</td><td>0.320</td><td>0.308</td></tr>
+          <tr><td>WordPiece</td><td>0.413</td><td>0.249</td><td>0.293</td><td>0.355</td><td>0.314</td><td>0.316</td></tr>
+          <tr><td>SentencePiece</td><td>0.371</td><td>0.235</td><td>0.298</td><td>0.325</td><td>0.321</td><td>0.287</td></tr>
+          <tr><td>SuperBPE</td><td>0.624</td><td>0.146</td><td>0.655</td><td>0.127</td><td>0.631</td><td>0.126</td></tr>
+          <tr><td>MorphTok</td><td>0.801</td><td>0.067</td><td>0.823</td><td>0.055</td><td>0.792</td><td>0.051</td></tr>
+          <tr class="ours-row"><td><strong>SuTRA (Ours)</strong></td><td class="best">0.875</td><td class="best">0.042</td><td class="best">0.885</td><td class="best">0.038</td><td>0.788</td><td class="best">0.040</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <section id="bibtex">
+    <h2>BibTeX</h2>
+    <pre>@misc{rathore2026sutra,
+  title  = {SuTRA: Structurally-Unified Tokenization with Root Awareness},
+  author = {Rathore, Vaibhav and Gole, Siddhant and Telwadkar, Dadhichi and
+            Bhatia, Rooshil and Ruparel, Maulik and Surekha, Siddharth and Bhargava, Neha},
+  year   = {2026},
+  note   = {Update venue and URL when available}
+}</pre>
+  </section>
+
+  <footer>
+    Project page for <strong>SuTRA</strong>.
+    Template adapted from <a href="https://github.com/nerfies/nerfies.github.io" target="_blank" rel="noopener">Nerfies</a>.
+    To publish on GitHub Pages: enable Pages for this repo (branch <code>main</code>, folder <code>/ (root)</code>),
+    add figures under <code>images/</code>, and set Paper/Code links in <code>index.html</code>.
+  </footer>
+
+  <script>
+    (function () {
+      var paper = document.getElementById('paper-link');
+      var code = document.getElementById('code-link');
+      if (paper.getAttribute('href') === '#') {
+        paper.classList.add('disabled');
+        paper.setAttribute('aria-disabled', 'true');
+      }
+      if (code.getAttribute('href') === '#') {
+        code.classList.add('disabled');
+        code.setAttribute('aria-disabled', 'true');
+      }
+    })();
+  </script>
+</body>
+</html>
