@@ -42,6 +42,12 @@
       line-height: 1.15;
       letter-spacing: -0.03em;
     }
+    .venue {
+      font-size: 1.1rem;
+      color: var(--accent-dark);
+      font-weight: 600;
+      margin: 0 0 0.85rem;
+    }
     .subtitle {
       font-size: 1.15rem;
       color: var(--muted);
@@ -206,6 +212,9 @@
       margin: 0;
       max-width: 100%;
     }
+    .figures figure + figure {
+      margin-top: 2.5rem;
+    }
     figure img {
       max-width: 100%;
       height: auto;
@@ -276,6 +285,7 @@
 <body>
 
   <h1>SuTRA: Structurally-Unified Tokenization<br>with Root Awareness</h1>
+  <p class="venue">Interspeech 2026</p>
   <p class="subtitle">Morphology-aware subword learning for Hindi, Marathi, and Gujarati that preserves akshara integrity and reduces <em>Morphological Shattering</em>.</p>
 
   <div class="tagline">Large Language Models · Tokenization · Indic Languages</div>
@@ -299,8 +309,8 @@
   </div>
 
   <div class="buttons">
-    <a href="#" id="paper-link" class="btn btn-primary" title="Update href when the paper is public">
-      <i class="ai ai-arxiv"></i> Paper
+    <a href="https://drive.google.com/file/d/1Me6fn5_VEFrSLhorfP6YdNP-z2wrgh3Y/view?usp=sharing" id="paper-link" class="btn btn-primary" target="_blank" rel="noopener" title="Paper PDF (Google Drive)">
+      <i class="fas fa-file-pdf"></i> Paper
     </a>
     <a href="#" id="code-link" class="btn" title="Update href to the code repository">
       <i class="fab fa-github"></i> Code
@@ -561,12 +571,13 @@
 
   <section id="bibtex">
     <h2>BibTeX</h2>
-    <pre>@misc{rathore2026sutra,
-  title  = {SuTRA: Structurally-Unified Tokenization with Root Awareness},
-  author = {Rathore, Vaibhav and Gole, Siddhant and Telwadkar, Dadhichi and
-            Bhatia, Rooshil and Ruparel, Maulik and Surekha, Siddharth and Bhargava, Neha},
-  year   = {2026},
-  note   = {Update venue and URL when available}
+    <pre>@inproceedings{rathore2026sutra,
+  title     = {SuTRA: Structurally-Unified Tokenization with Root Awareness},
+  author    = {Rathore, Vaibhav and Gole, Siddhant and Telwadkar, Dadhichi and
+               Bhatia, Rooshil and Ruparel, Maulik and Surekha, Siddharth and Bhargava, Neha},
+  booktitle = {Proc. Interspeech 2026},
+  year      = {2026},
+  url       = {https://drive.google.com/file/d/1Me6fn5_VEFrSLhorfP6YdNP-z2wrgh3Y/view?usp=sharing}
 }</pre>
   </section>
 
