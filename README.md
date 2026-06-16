@@ -28,7 +28,7 @@ Open [`index.html`](index.html) locally, or publish this repository with [GitHub
 
 ## Authors
 
-Vaibhav Rathore, Siddhant Gole, Dadhichi Telwadkar, Rooshil Bhatia, Maulik Ruparel, Siddharth Surekha, Neha Bhargava
+Vaibhav Rathore, Siddhant Gole, Dadhichi Telwadkar, Rooshil Bhatia, Maulik Ruparel, Siddharth Sureka, Neha Bhargava
 
 Motilal Oswal Financial Services Ltd. · IIT Bombay
 
