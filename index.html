@@ -140,6 +140,22 @@
       cursor: default;
     }
 
+    .video-container {
+      width: 100%;
+      max-width: 900px;
+      margin: 0 auto 2rem;
+      border-radius: 12px;
+      overflow: hidden;
+      border: 1px solid var(--border);
+      box-shadow: 0 2px 12px rgba(0,0,0,0.08);
+      background: #000;
+    }
+    .video-container video {
+      display: block;
+      width: 100%;
+      height: auto;
+    }
+
     section {
       margin-top: 2rem;
       width: 100%;
@@ -326,10 +342,10 @@
   <div class="authors">
     <a href="https://www.linkedin.com/in/vaibhav-rathore-ab696b188" target="_blank" rel="noopener">Vaibhav Rathore</a><sup>1,2</sup>,
     <a href="https://www.linkedin.com/in/siddhant-gole-812000/" target="_blank" rel="noopener">Siddhant Gole</a><sup>1,2</sup>,
-    Dadhichi Telwadkar<sup>1</sup>,
+    <a href="https://www.linkedin.com/in/dadhichi-telwadkar-070605301/" target="_blank" rel="noopener">Dadhichi Telwadkar</a><sup>1</sup>,
     <a href="https://www.linkedin.com/in/rooshil-bhatia/" target="_blank" rel="noopener">Rooshil Bhatia</a><sup>1</sup>,
     <a href="https://www.linkedin.com/in/maulik-ruparel/" target="_blank" rel="noopener">Maulik Ruparel</a><sup>1</sup>,
-    <a href="https://www.linkedin.com/in/siddharth-sureka/" target="_blank" rel="noopener">Siddharth Surekha</a><sup>1</sup>,
+    <a href="https://www.linkedin.com/in/siddharth-sureka/" target="_blank" rel="noopener">Siddharth Sureka</a><sup>1</sup>,
     <a href="https://www.linkedin.com/in/neha-bhargava-5898b38/" target="_blank" rel="noopener">Neha Bhargava</a><sup>1</sup>
   </div>
 
@@ -348,12 +364,22 @@
     <a href="#" id="code-link" class="btn" title="Update href to the code repository">
       <i class="fab fa-github"></i> Code
     </a>
+    <a href="#video" class="btn">
+      <i class="fas fa-play"></i> Video
+    </a>
     <a href="poster.html" class="btn">
       <i class="fas fa-image"></i> Poster
     </a>
     <a href="images/tokenizer_segmentation_predictions.csv" class="btn" download>
       <i class="fas fa-database"></i> Segmentation Data
     </a>
+  </div>
+
+  <div id="video" class="video-container">
+    <video controls playsinline preload="metadata">
+      <source src="final_presentation_with_audio_v6.mp4" type="video/mp4">
+      Your browser does not support the video tag.
+    </video>
   </div>
 
   <div class="metric-grid">
@@ -607,7 +633,7 @@
     <pre>@inproceedings{rathore2026sutra,
   title     = {SuTRA: Structurally-Unified Tokenization with Root Awareness},
   author    = {Rathore, Vaibhav and Gole, Siddhant and Telwadkar, Dadhichi and
-               Bhatia, Rooshil and Ruparel, Maulik and Surekha, Siddharth and Bhargava, Neha},
+               Bhatia, Rooshil and Ruparel, Maulik and Sureka, Siddharth and Bhargava, Neha},
   booktitle = {Proc. Interspeech 2026},
   year      = {2026},
   url       = {https://drive.google.com/file/d/1Me6fn5_VEFrSLhorfP6YdNP-z2wrgh3Y/view?usp=sharing}
